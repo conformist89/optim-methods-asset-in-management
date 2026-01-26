@@ -53,3 +53,49 @@ def mean_variance_opt(mu, cov_matrix, target_return, short_allowed=True):
     ret_star = float(mu @ x_star)
 
     return x_star, var_star, ret_star, result
+
+
+def sharpe_ratio_optimization(mu, cov_matrix, rf, short_allowed=True):
+    # this function performes Sharpe ratio optimization with minimization 
+    # of variance that used as risk measure 
+    mu = np.asarray(mu, float).reshape(-1)
+    cov_matrix = np.asarray(cov_matrix, float)
+    n = mu.size
+    ones = np.ones(n)
+
+    # Initial guess: equal weights
+    x0 = np.full(n, 1.0 / n)
+
+    # Constraints:
+    # 1) mu - rf *x - 1 >= 0
+    constraints = [
+        {"type": "eq",   "fun": lambda x: float((mu - rf * ones) @ x) - 1.0},
+    ]
+
+
+    # Bounds (optional): long-only vs allow shorting
+    if short_allowed:
+        bounds = None
+    else:
+        bounds = [(0.0, 1.0)] * n
+
+    result = minimize(
+        fun=get_risk,
+        x0=x0,
+        args=(cov_matrix,),
+        method="SLSQP",
+        constraints=constraints,
+        bounds=bounds,
+        options={"ftol": 1e-12, "maxiter": 10_000}
+)
+
+
+    if not result.success:
+        raise RuntimeError(f"Optimization failed: {result.message}")
+
+    x_star = result.x
+    w_star = x_star / (ones @ x_star)  # normalize to sum to 1
+    var_star = get_risk(w_star, cov_matrix)
+    ret_star = float(mu @ w_star)
+
+    return w_star, var_star, ret_star, result
