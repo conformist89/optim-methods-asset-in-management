@@ -54,7 +54,6 @@ def mean_variance_opt(mu, cov_matrix, target_return, short_allowed=True):
 
     return x_star, var_star, ret_star, result
 
-
 def sharpe_ratio_optimization(mu, cov_matrix, rf, short_allowed=True):
     # this function performes Sharpe ratio optimization with minimization 
     # of variance that used as risk measure 
@@ -99,7 +98,6 @@ def sharpe_ratio_optimization(mu, cov_matrix, rf, short_allowed=True):
     ret_star = float(mu @ w_star)
 
     return w_star, var_star, ret_star, result
-
 
 def plot_efficient_frontier(front_returns, mu, cov_matrix, rf):
     """
@@ -147,4 +145,19 @@ def plot_efficient_frontier(front_returns, mu, cov_matrix, rf):
     plt.title("Mean-Variance optimized Portfolio")
     plt.legend()
     plt.grid(True)
+    plt.show()
+
+def plot_correlation_matrix(corr, labels=None):
+    corr = np.asarray(corr, float)
+
+    plt.figure()
+    im = plt.imshow(corr, vmin=-1, vmax=1)
+    plt.colorbar(im, fraction=0.046, pad=0.04)
+
+    if labels is not None:
+        plt.xticks(range(len(labels)), labels, rotation=90)
+        plt.yticks(range(len(labels)), labels)
+
+    plt.title("Correlation matrix")
+    plt.tight_layout()
     plt.show()
