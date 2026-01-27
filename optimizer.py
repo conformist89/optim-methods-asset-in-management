@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 def get_risk(x,cov_matrix): 
     # this function is responsible for returning variance of portfolio; in this case variance is used as risk measure
@@ -161,3 +162,31 @@ def plot_correlation_matrix(corr, labels=None):
     plt.title("Correlation matrix")
     plt.tight_layout()
     plt.show()
+
+def plot_return_violins(returns, asset_names=None):
+    returns = np.asarray(returns, float)
+
+    T, N = returns.shape
+
+    if asset_names is None:
+        asset_names = [f"Asset {i+1}" for i in range(N)]
+
+    # Convert to long format
+    df = pd.DataFrame(returns, columns=asset_names)
+    df_long = df.melt(var_name="Asset", value_name="Return")
+
+    plt.figure()
+    sns.violinplot(
+        data=df_long,
+        x="Asset",
+        y="Return",
+        inner="quartile",
+        cut=0
+    )
+
+    plt.xticks(rotation=90)
+    plt.title("Return distributions")
+    plt.ylabel("Returns")
+    plt.tight_layout()
+    plt.show()
+
