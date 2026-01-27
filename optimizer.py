@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize 
-
+import matplotlib.pyplot as plt
 
 def get_risk(x,cov_matrix): 
     # this function is responsible for returning variance of portfolio; in this case variance is used as risk measure
@@ -99,3 +99,52 @@ def sharpe_ratio_optimization(mu, cov_matrix, rf, short_allowed=True):
     ret_star = float(mu @ w_star)
 
     return w_star, var_star, ret_star, result
+
+
+def plot_efficient_frontier(front_returns, mu, cov_matrix, rf):
+    """
+    front_returns: (K,) array of target returns
+    mu: (n,) expected returns
+    cov_matrix: (n,n) covariance matrix
+    minimizer_for_target_return: function(target_return) -> weights (n,)
+        (You can also accept mu,cov_matrix; adjust the call below accordingly.)
+    """
+    front_returns = np.asarray(front_returns, float)
+    mu = np.asarray(mu, float).reshape(-1)
+    cov_matrix = np.asarray(cov_matrix, float)
+
+    K = front_returns.size
+    n = mu.size
+
+    # Preallocate for speed
+    W = np.empty((K, n), dtype=float)
+    vols = np.full(K, np.nan, dtype=float)
+    rets = np.full(K, np.nan, dtype=float)
+
+    # Solve for each target return
+    for k, r_t in enumerate(front_returns):
+        x_star, var_star, ret_star, result = mean_variance_opt(mu, cov_matrix, r_t, short_allowed=True)
+        w = np.asarray(x_star, float).reshape(-1)
+
+        # store weights (optional but useful)
+        W[k, :] = w
+
+        # stats
+        rets[k] = float(mu @ w)
+        vols[k] = float(np.sqrt(w @ cov_matrix @ w) * 100)
+
+    w_sharpe, var_sharpe, return_sharpe, result_sharpe = sharpe_ratio_optimization(mu, cov_matrix, rf, short_allowed=True)
+    vol_sharpe = np.sqrt(var_sharpe)*100
+
+    # In case some targets are infeasible and returned NaNs
+    ok = np.isfinite(vols) & np.isfinite(rets)
+
+    plt.figure()
+    plt.plot(vols[ok], rets[ok], linestyle='-', marker='.', markersize=2, label = "Efficient Frontier")
+    plt.plot(vol_sharpe, return_sharpe, marker = "P", color = "m", label="Max Sharpe ratio", markersize = 8)
+    plt.xlabel("Volatility %")
+    plt.ylabel("Expected return")
+    plt.title("Mean-Variance optimized Portfolio")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
