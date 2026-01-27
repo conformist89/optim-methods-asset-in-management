@@ -190,3 +190,30 @@ def plot_return_violins(returns, asset_names=None):
     plt.tight_layout()
     plt.show()
 
+def get_var(pnl, p):
+    N = len(pnl)
+    Kp = int(np.ceil((1-p) * N))
+    
+    sorted_losses = np.sort(pnl)
+    VaR = sorted_losses[Kp - 1]  
+    return VaR
+
+
+def get_cvar(pnl, p):
+    N = len(pnl)
+    pnl_sorted = np.sort(pnl)
+
+    n_tail = max(1, int(np.ceil((1 - p) * len(pnl_sorted))))
+    return pnl_sorted[:n_tail].mean()
+
+
+def plot_var_cvar(pnl, var, cvar, conf_level):
+    plt.hist(pnl, bins = 100 )
+    plt.title("Distribution of evenly weighted portfolio's profit and loss (P&L) ")
+    plt.xlabel("Portfolio P&L")
+    label_var = rf"$VaR_{{{int(conf_level*100)}\%}}$"
+    label_cvar = rf"$CVaR_{{{int(conf_level*100)}\%}}$"
+    plt.axvline(x=var, color='g', label=label_var)
+    plt.axvline(x=cvar, color='r', label=label_cvar)
+    plt.grid(True)
+    plt.legend()
