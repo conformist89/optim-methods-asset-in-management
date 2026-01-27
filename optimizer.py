@@ -141,7 +141,7 @@ def plot_efficient_frontier(front_returns, mu, cov_matrix, rf):
 
     plt.figure()
     plt.plot(vols[ok], rets[ok], linestyle='-', marker='.', markersize=2, label = "Efficient Frontier")
-    plt.plot(vol_sharpe, return_sharpe, marker = "P", color = "m", label="Max Sharpe ratio", markersize = 8)
+    plt.scatter(vol_sharpe, return_sharpe, marker = "X", color = "m", label="Max Sharpe ratio", s = 55)
     plt.xlabel("Volatility %")
     plt.ylabel("Expected return")
     plt.title("Mean-Variance optimized Portfolio")
