@@ -207,9 +207,9 @@ def get_cvar(pnl, p):
     return pnl_sorted[:n_tail].mean()
 
 
-def plot_var_cvar(pnl, var, cvar, conf_level):
-    plt.hist(pnl, bins = 100 )
-    plt.title("Distribution of evenly weighted portfolio's profit and loss (P&L) ")
+def plot_var_cvar(pnl, var, cvar, conf_level, nbins):
+    plt.hist(pnl, bins = nbins )
+    plt.title("Distribution of portfolio's profit and loss (P&L) ")
     plt.xlabel("Portfolio P&L")
     label_var = rf"$VaR_{{{int(conf_level*100)}\%}}$"
     label_cvar = rf"$CVaR_{{{int(conf_level*100)}\%}}$"
