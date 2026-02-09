@@ -100,19 +100,35 @@ def sharpe_ratio_optimization(mu, cov_matrix, rf, short_allowed=True):
     return w_star, var_star, ret_star, result
 
 
-
 def get_var(pnl, p):
-    N = len(pnl)
-    Kp = int(np.ceil((1-p) * N))
-    
+    pnl = np.asarray(pnl)
+    p = np.asarray(p)
+
+    N = pnl.size
     sorted_losses = np.sort(pnl)
-    VaR = sorted_losses[Kp - 1]  
-    return VaR
+
+    # Compute index positions
+    Kp = np.ceil((1 - p) * N).astype(int) - 1
+
+    # Guard against out-of-bounds (numerical safety)
+    Kp = np.clip(Kp, 0, N - 1)
+
+    return sorted_losses[Kp]
 
 
 def get_cvar(pnl, p):
-    N = len(pnl)
-    pnl_sorted = np.sort(pnl)
+    pnl = np.asarray(pnl)
+    p_arr = np.atleast_1d(p)
 
-    n_tail = max(1, int(np.ceil((1 - p) * len(pnl_sorted))))
-    return pnl_sorted[:n_tail].mean()
+    pnl_sorted = np.sort(pnl)
+    N = pnl_sorted.size
+
+    # tail sizes for each p: k = ceil((1-p)*N), at least 1, at most N
+    k = np.ceil((1 - p_arr) * N).astype(int)
+    k = np.clip(k, 1, N)
+
+    # prefix sums let us get mean of first k values fast
+    prefix = np.cumsum(pnl_sorted)
+    cvar = prefix[k - 1] / k
+
+    return cvar[0] if np.ndim(p) == 0 else cvar
