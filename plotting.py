@@ -105,3 +105,18 @@ def plot_var_cvar(pnl, var, cvar, conf_level, nbins):
     plt.axvline(x=cvar, color='r', label=label_cvar)
     plt.grid(True)
     plt.legend()
+
+
+def plot_var_es_conf_level(conf_levels, var, es, title, ax=None):
+    """Plot VaR and ES vs confidence level on a given axis (or create one)."""
+    if ax is None:
+        fig, ax = plt.subplots()
+
+    ax.plot(conf_levels, var, label="VaR")
+    ax.plot(conf_levels, es, label="ES")
+    ax.set_title(title)
+    ax.set_xlabel("Confidence level")
+    ax.grid(True)
+    ax.legend()
+
+    return ax
