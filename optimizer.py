@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize 
+from scipy.stats import norm
 
 
 def get_risk(x,cov_matrix): 
@@ -132,3 +133,11 @@ def get_cvar(pnl, p):
     cvar = prefix[k - 1] / k
 
     return cvar[0] if np.ndim(p) == 0 else cvar
+
+def get_var_gauss(mu, sigm, p):
+    z = norm.ppf(p)
+    return mu  - sigm * z
+
+def get_cvar_gauss(mu, sigm, p):
+    z = norm.ppf(p)
+    return mu - sigm * norm.pdf(z) / (1 - p)

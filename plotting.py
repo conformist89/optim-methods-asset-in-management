@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from optimizer import mean_variance_opt, sharpe_ratio_optimization 
+from scipy.stats import norm
+from optimizer import mean_variance_opt, sharpe_ratio_optimization, get_var_gauss, get_cvar_gauss 
 
 
 def plot_efficient_frontier(front_returns, mu, cov_matrix, rf):
@@ -120,3 +121,71 @@ def plot_var_es_conf_level(conf_levels, var, es, title, ax=None):
     ax.legend()
 
     return ax
+
+def _gaussian_fit_curve(pnl, n_points):
+    pnl = np.asarray(pnl)
+    x = np.linspace(pnl.min(), pnl.max(), n_points)
+    mu = pnl.mean()
+    sigma = pnl.std(ddof=1)  # sample std (often preferred)
+    pdf = norm.pdf(x, loc=mu, scale=sigma)
+    return x, pdf, mu, sigma
+
+
+def plot_pnl_with_gaussian(
+    pnl,
+    title,
+    conf_level,
+    var_hist=None,
+    cvar_hist=None,
+    bins=50,
+    n_points=50
+):
+    """
+    Creates three figures:
+      1) Histogram + Gaussian fit
+      2) Histogram + Gaussian fit + VaR (historic & parametric)
+      3) Histogram + Gaussian fit + CVaR (historic & parametric)
+    Pass var_hist/cvar_hist if you want the historic vertical lines.
+    """
+    x, pdf, mu, sigma = _gaussian_fit_curve(pnl, n_points=n_points)
+
+    # Parametric (Gaussian) VaR / CVaR
+    var_gauss  = get_var_gauss(mu, sigma, conf_level)
+    cvar_gauss = get_cvar_gauss(mu, sigma, conf_level)
+
+    def base_plot():
+        plt.hist(pnl, bins=bins, density=True, alpha=0.4, label="historical data")
+        plt.plot(x, pdf, label="parametric (Gaussian) data")
+        plt.xlabel("Portfolio P&L")
+        plt.grid(True)
+
+    # 1) Fit only
+    plt.figure()
+    base_plot()
+    plt.title(title)
+    plt.legend()
+    plt.tight_layout()
+
+    # 2) VaR overlay
+    plt.figure()
+    base_plot()
+    plt.title(f"{title} — VaR")
+    label = rf"$VaR_{{{int(conf_level*100)}\%}}$"
+    if var_hist is not None:
+        plt.axvline(var_hist, color="magenta", label=label + " historic")
+    plt.axvline(var_gauss, color="r", label=label + " param")
+    plt.legend()
+    plt.tight_layout()
+
+    # 3) CVaR overlay
+    plt.figure()
+    base_plot()
+    plt.title(f"{title} — CVaR")
+    label = rf"$CVaR_{{{int(conf_level*100)}\%}}$"
+    if cvar_hist is not None:
+        plt.axvline(cvar_hist, color="magenta", label=label + " historic")
+    plt.axvline(cvar_gauss, color="r", label=label + " param")
+    plt.legend()
+    plt.tight_layout()
+
+    return {"mu": mu, "sigma": sigma, "var_gauss": var_gauss, "cvar_gauss": cvar_gauss}
