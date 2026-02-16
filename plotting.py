@@ -122,7 +122,7 @@ def plot_var_es_conf_level(conf_levels, var, es, title, ax=None):
 
     return ax
 
-def _gaussian_fit_curve(pnl, n_points):
+def gaussian_fit_curve(pnl, n_points):
     pnl = np.asarray(pnl)
     x = np.linspace(pnl.min(), pnl.max(), n_points)
     mu = pnl.mean()
@@ -190,3 +190,17 @@ def plot_pnl_with_gaussian(
     fig.tight_layout()
 
     return fig
+
+
+def plot_risk_param_vs_hist(conf_levels, hist, param, title, ylabel, param_label, hist_label, ax=None):
+    if ax is None:
+        fig, ax = plt.subplots()
+    ax.plot(conf_levels, param, label=param_label, color="red")
+    ax.plot(conf_levels, hist,  label=hist_label,  color="magenta")
+    ax.set_title(title)
+    ax.set_xlabel("Confidence level")
+    ax.set_ylabel(ylabel)
+    ax.grid(True)
+    ax.legend()
+
+    return ax
